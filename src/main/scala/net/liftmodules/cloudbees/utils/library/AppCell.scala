@@ -23,19 +23,18 @@ object AppCell  extends Loggable {
   private[this] def json(host: String) = {
     val http = new Http()
     val u = url("%s/appcell/whoami.json".format(host.trim))
-    logger.info("Call %s".format(u))
+    logger.debug("Call %s".format(u))
     http(u >- JsonParser.parse)
   }
 
-  lazy val ip: Box[String] = Props.get("cloudbees.util.appcell.host").flatMap { host ⇒ (json(host).\("addr")).extractOpt[String] }
+  lazy val ip: Option[String] = Props.get("cloudbees.util.appcell.host").flatMap { host ⇒ (json(host).\("addr")).extractOpt[String] }
 
   private[this] val rx = """.*/(\d+)""".r
 
-  lazy val port = Box.legacyNullTest(System.getProperty("user.home")).flatMap { u ⇒
-    tryo {
-      logger.info("PORT %s".format(u))    
+  lazy val port:Option[Int] = Box.legacyNullTest(System.getProperty("user.home")).flatMap { u ⇒
+    tryo {    
       val rx(port) = u
-      logger.info("PORT %s".format(port))      
+      logger.debug("PORT %s".format(port))      
       port.toInt
     }
   }
